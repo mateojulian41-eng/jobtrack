@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const prisma = require("../config/prisma");
 
 async function register(request, response) {
@@ -67,6 +68,79 @@ async function register(request, response) {
   }
 }
 
+
+async function login(request, response) {
+  try {
+    const { email, password } = request.body;
+
+    if (!email || !password) {
+      return response.status(400).json({
+        status: "error",
+        message: "Email and password are required",
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const user = await prisma.user.findUnique({
+      where: {
+        email: normalizedEmail,
+      },
+    });
+
+    if (!user) {
+      return response.status(401).json({
+        status: "error",
+        message: "Invalid email or password",
+      });
+    }
+
+    const passwordIsValid = await bcrypt.compare(
+      password,
+      user.passwordHash
+    );
+
+    if (!passwordIsValid) {
+      return response.status(401).json({
+        status: "error",
+        message: "Invalid email or password",
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        email: user.email,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1d",
+      }
+    );
+
+    return response.status(200).json({
+      status: "success",
+      message: "Login successful",
+      data: {
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        },
+        token,
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+
+    return response.status(500).json({
+      status: "error",
+      message: "Internal server error",
+    });
+  }
+}
+
 module.exports = {
   register,
+  login,
 };
