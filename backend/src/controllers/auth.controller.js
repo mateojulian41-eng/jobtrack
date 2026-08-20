@@ -140,7 +140,47 @@ async function login(request, response) {
   }
 }
 
+async function getProfile(request, response) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: request.user.id,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!user) {
+      return response.status(404).json({
+        status: "error",
+        message: "User not found",
+      });
+    }
+
+    return response.status(200).json({
+      status: "success",
+      data: {
+        user,
+      },
+    });
+  } catch (error) {
+    console.error("Profile error:", error);
+
+    return response.status(500).json({
+      status: "error",
+      message: "Internal server error",
+    });
+  }
+}
+
 module.exports = {
   register,
   login,
+  getProfile,
 };
+
