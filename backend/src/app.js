@@ -12,24 +12,49 @@ const {
 const app = express();
 
 function normalizeOrigin(origin) {
-  return origin?.trim().replace(/\/$/, "");
+  return origin?.trim().replace(/\/+$/, "");
 }
 
-const allowedOrigins =
-  process.env.NODE_ENV === "production"
-    ? [normalizeOrigin(process.env.FRONTEND_URL)].filter(Boolean)
-    : [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-      ];
+const nodeEnvironment = (process.env.NODE_ENV || "development")
+  .trim()
+  .toLowerCase();
+const normalizedFrontendUrl = normalizeOrigin(
+  process.env.FRONTEND_URL,
+);
+
+function getUrlOrigin(origin) {
+  try {
+    return origin ? new URL(origin).origin : null;
+  } catch {
+    return null;
+  }
+}
+
+const frontendOrigin = getUrlOrigin(normalizedFrontendUrl);
+const developmentOrigins = new Set([
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+]);
 
 app.use(
   cors({
     origin(origin, callback) {
-      if (
-        !origin ||
-        allowedOrigins.includes(normalizeOrigin(origin))
-      ) {
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      const normalizedOrigin = normalizeOrigin(origin);
+      const requestOrigin = getUrlOrigin(normalizedOrigin);
+      const isVercelOrigin = requestOrigin
+        ? new URL(requestOrigin).protocol === "https:" &&
+          new URL(requestOrigin).hostname.endsWith(".vercel.app")
+        : false;
+      const isAllowed =
+        nodeEnvironment === "production"
+          ? requestOrigin === frontendOrigin || isVercelOrigin
+          : developmentOrigins.has(requestOrigin);
+
+      if (isAllowed) {
         return callback(null, true);
       }
 
@@ -37,6 +62,7 @@ app.use(
     },
     methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    optionsSuccessStatus: 204,
   }),
 );
 
