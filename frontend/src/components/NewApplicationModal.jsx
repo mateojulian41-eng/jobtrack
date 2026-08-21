@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BriefcaseBusiness,
   CalendarDays,
@@ -30,6 +30,30 @@ function NewApplicationModal({
   const [formData, setFormData] = useState(initialFormData);
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return undefined;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape" && !isSubmitting) {
+        setFormData(initialFormData);
+        setErrorMessage("");
+        onClose();
+      }
+    }
+
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, isSubmitting, onClose]);
 
   if (!isOpen) {
     return null;
@@ -194,7 +218,7 @@ function NewApplicationModal({
           </button>
         </header>
 
-        <form className="p-6 sm:p-8" onSubmit={handleSubmit}>
+        <form aria-busy={isSubmitting} className="p-6 sm:p-8" onSubmit={handleSubmit}>
           {errorMessage && (
             <div
               className="mb-6 rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-300"
@@ -446,6 +470,7 @@ function NewApplicationModal({
 
             <button
               className="flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+              aria-busy={isSubmitting}
               disabled={isSubmitting}
               type="submit"
             >

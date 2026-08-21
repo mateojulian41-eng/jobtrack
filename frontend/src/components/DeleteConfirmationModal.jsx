@@ -1,5 +1,5 @@
 import { AlertTriangle, LoaderCircle, Trash2, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import api from "../services/api";
 
@@ -11,6 +11,28 @@ function DeleteConfirmationModal({
 }) {
   const [errorMessage, setErrorMessage] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    if (!application) {
+      return undefined;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape" && !isDeleting) {
+        onClose();
+      }
+    }
+
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [application, isDeleting, onClose]);
 
   if (!application) {
     return null;
@@ -42,7 +64,7 @@ function DeleteConfirmationModal({
   return (
     <div aria-labelledby="delete-application-title" aria-modal="true" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm" role="dialog">
       <button aria-label="Cerrar confirmación" className="absolute inset-0 cursor-default" onClick={() => !isDeleting && onClose()} type="button" />
-      <section className="relative z-10 w-full max-w-md rounded-[28px] border border-white/10 bg-[#0c1224] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.55)] sm:p-8">
+      <section aria-busy={isDeleting} className="relative z-10 w-full max-w-md rounded-[28px] border border-white/10 bg-[#0c1224] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.55)] sm:p-8">
         <div className="flex items-start justify-between">
           <div className="flex size-12 items-center justify-center rounded-2xl bg-red-400/10 text-red-300"><AlertTriangle aria-hidden="true" className="size-6" /></div>
           <button aria-label="Cerrar" className="rounded-xl border border-white/10 p-2.5 text-slate-400 transition hover:bg-white/5 hover:text-white" disabled={isDeleting} onClick={onClose} type="button"><X aria-hidden="true" className="size-5" /></button>

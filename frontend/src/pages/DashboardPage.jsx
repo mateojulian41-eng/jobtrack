@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Bell,
   BriefcaseBusiness,
   CalendarDays,
   ClipboardList,
@@ -266,6 +265,7 @@ function DashboardPage() {
         <nav className="mt-10 space-y-2">
           <button
             className="flex w-full items-center gap-3 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold shadow-lg shadow-blue-600/15"
+            onClick={() => navigate("/dashboard")}
             type="button"
           >
             <LayoutDashboard
@@ -340,15 +340,8 @@ function DashboardPage() {
 
             <div className="ml-auto flex items-center gap-3">
               <button
-                aria-label="Notificaciones"
-                className="rounded-xl border border-white/10 bg-white/[0.03] p-2.5 text-slate-400 transition hover:text-white"
-                type="button"
-              >
-                <Bell aria-hidden="true" className="size-5" />
-              </button>
-
-              <button
                 className="flex h-11 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-bold shadow-lg shadow-blue-600/20 transition hover:bg-blue-500"
+                aria-busy={isNewApplicationOpen}
                 onClick={() => setIsNewApplicationOpen(true)}
                 type="button"
               >
@@ -451,7 +444,7 @@ function DashboardPage() {
                 </p>
               </div>
 
-              <div className="divide-y divide-white/5">
+              <div aria-busy={isLoading} className="divide-y divide-white/5">
                 {isLoading && (
                   <p className="p-8 text-center text-sm text-slate-500">
                     Cargando postulaciones...

@@ -314,12 +314,6 @@ function LoginPage() {
                       Contraseña
                     </label>
 
-                    <button
-                      className="text-xs font-semibold text-blue-400 transition hover:text-blue-300"
-                      type="button"
-                    >
-                      ¿Olvidaste tu contraseña?
-                    </button>
                   </div>
 
                   <div className="relative">
@@ -379,6 +373,7 @@ function LoginPage() {
 
                 <button
                   className="group flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                  aria-busy={isLoading}
                   disabled={isLoading}
                   type="submit"
                 >
