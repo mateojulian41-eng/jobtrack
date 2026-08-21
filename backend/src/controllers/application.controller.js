@@ -107,6 +107,73 @@ async function createApplication(request, response) {
   }
 }
 
+async function getApplications(request, response) {
+  try {
+    const { status, workMode, search } = request.query;
+
+    if (status && !validStatuses.includes(status)) {
+      return response.status(400).json({
+        status: "error",
+        message: "Invalid application status",
+      });
+    }
+
+    if (workMode && !validWorkModes.includes(workMode)) {
+      return response.status(400).json({
+        status: "error",
+        message: "Invalid work mode",
+      });
+    }
+
+    const applications = await prisma.application.findMany({
+      where: {
+        userId: request.user.id,
+        ...(status && {
+          status,
+        }),
+        ...(workMode && {
+          workMode,
+        }),
+        ...(search && {
+          OR: [
+            {
+              company: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              position: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+          ],
+        }),
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return response.status(200).json({
+      status: "success",
+      results: applications.length,
+      data: {
+        applications,
+      },
+    });
+  } catch (error) {
+    console.error("Get applications error:", error);
+
+    return response.status(500).json({
+      status: "error",
+      message: "Internal server error",
+    });
+  }
+}
+
 module.exports = {
   createApplication,
+  getApplications,
 };
