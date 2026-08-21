@@ -173,7 +173,49 @@ async function getApplications(request, response) {
   }
 }
 
+async function getApplicationById(request, response) {
+  try {
+    const applicationId = Number(request.params.id);
+
+    if (!Number.isInteger(applicationId) || applicationId <= 0) {
+      return response.status(400).json({
+        status: "error",
+        message: "Invalid application ID",
+      });
+    }
+
+    const application = await prisma.application.findFirst({
+      where: {
+        id: applicationId,
+        userId: request.user.id,
+      },
+    });
+
+    if (!application) {
+      return response.status(404).json({
+        status: "error",
+        message: "Application not found",
+      });
+    }
+
+    return response.status(200).json({
+      status: "success",
+      data: {
+        application,
+      },
+    });
+  } catch (error) {
+    console.error("Get application by ID error:", error);
+
+    return response.status(500).json({
+      status: "error",
+      message: "Internal server error",
+    });
+  }
+}
+
 module.exports = {
   createApplication,
   getApplications,
+  getApplicationById,
 };
