@@ -5,6 +5,7 @@ const {
   getApplications,
   getApplicationById,
   updateApplication,
+  deleteApplication,
 } = require("../controllers/application.controller");
 
 const {
@@ -17,5 +18,6 @@ router.post("/", authenticate, createApplication);
 router.get("/", authenticate, getApplications);
 router.get("/:id", authenticate, getApplicationById);
 router.patch("/:id", authenticate, updateApplication);
+router.delete("/:id", authenticate, deleteApplication);
 
 module.exports = router;
