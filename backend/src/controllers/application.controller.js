@@ -252,14 +252,14 @@ async function updateApplication(request, response) {
       notes,
     } = request.body;
 
-    if (company !== undefined && !company.trim()) {
+    if (company !== undefined && (typeof company !== "string" || !company.trim())) {
       return response.status(400).json({
         status: "error",
         message: "Company cannot be empty",
       });
     }
 
-    if (position !== undefined && !position.trim()) {
+    if (position !== undefined && (typeof position !== "string" || !position.trim())) {
       return response.status(400).json({
         status: "error",
         message: "Position cannot be empty",
