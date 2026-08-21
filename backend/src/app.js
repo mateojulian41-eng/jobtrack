@@ -3,6 +3,10 @@ const express = require("express");
 const healthRoutes = require("./routes/health.routes");
 const authRoutes = require("./routes/auth.routes");
 const applicationRoutes = require("./routes/application.routes");
+const {
+  notFound,
+  errorHandler,
+} = require("./middlewares/error.middleware");
 
 const app = express();
 
@@ -17,5 +21,7 @@ app.get("/", (request, response) => {
 app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/applications", applicationRoutes);
+app.use(notFound);
+app.use(errorHandler);
 
 module.exports = app;
