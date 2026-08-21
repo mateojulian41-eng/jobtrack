@@ -214,8 +214,155 @@ async function getApplicationById(request, response) {
   }
 }
 
+async function updateApplication(request, response) {
+  try {
+    const applicationId = Number(request.params.id);
+
+    if (!Number.isInteger(applicationId) || applicationId <= 0) {
+      return response.status(400).json({
+        status: "error",
+        message: "Invalid application ID",
+      });
+    }
+
+    const existingApplication = await prisma.application.findFirst({
+      where: {
+        id: applicationId,
+        userId: request.user.id,
+      },
+    });
+
+    if (!existingApplication) {
+      return response.status(404).json({
+        status: "error",
+        message: "Application not found",
+      });
+    }
+
+    const {
+      company,
+      position,
+      jobUrl,
+      location,
+      workMode,
+      source,
+      applicationDate,
+      status,
+      technologies,
+      notes,
+    } = request.body;
+
+    if (company !== undefined && !company.trim()) {
+      return response.status(400).json({
+        status: "error",
+        message: "Company cannot be empty",
+      });
+    }
+
+    if (position !== undefined && !position.trim()) {
+      return response.status(400).json({
+        status: "error",
+        message: "Position cannot be empty",
+      });
+    }
+
+    if (workMode && !validWorkModes.includes(workMode)) {
+      return response.status(400).json({
+        status: "error",
+        message: "Invalid work mode",
+      });
+    }
+
+    if (status && !validStatuses.includes(status)) {
+      return response.status(400).json({
+        status: "error",
+        message: "Invalid application status",
+      });
+    }
+
+    if (technologies !== undefined && !Array.isArray(technologies)) {
+      return response.status(400).json({
+        status: "error",
+        message: "Technologies must be an array",
+      });
+    }
+
+    let parsedApplicationDate;
+
+    if (applicationDate !== undefined) {
+      parsedApplicationDate = applicationDate
+        ? new Date(applicationDate)
+        : null;
+
+      if (
+        parsedApplicationDate &&
+        Number.isNaN(parsedApplicationDate.getTime())
+      ) {
+        return response.status(400).json({
+          status: "error",
+          message: "Invalid application date",
+        });
+      }
+    }
+
+    const application = await prisma.application.update({
+      where: {
+        id: applicationId,
+      },
+      data: {
+        ...(company !== undefined && {
+          company: company.trim(),
+        }),
+        ...(position !== undefined && {
+          position: position.trim(),
+        }),
+        ...(jobUrl !== undefined && {
+          jobUrl: jobUrl?.trim() || null,
+        }),
+        ...(location !== undefined && {
+          location: location?.trim() || null,
+        }),
+        ...(workMode !== undefined && {
+          workMode,
+        }),
+        ...(source !== undefined && {
+          source: source?.trim() || null,
+        }),
+        ...(applicationDate !== undefined && {
+          applicationDate: parsedApplicationDate,
+        }),
+        ...(status !== undefined && {
+          status,
+        }),
+        ...(technologies !== undefined && {
+          technologies,
+        }),
+        ...(notes !== undefined && {
+          notes: notes?.trim() || null,
+        }),
+      },
+    });
+
+    return response.status(200).json({
+      status: "success",
+      message: "Application updated successfully",
+      data: {
+        application,
+      },
+    });
+  } catch (error) {
+    console.error("Update application error:", error);
+
+    return response.status(500).json({
+      status: "error",
+      message: "Internal server error",
+    });
+  }
+}
+
 module.exports = {
   createApplication,
   getApplications,
   getApplicationById,
+  updateApplication,
 };

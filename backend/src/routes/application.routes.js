@@ -4,6 +4,7 @@ const {
   createApplication,
   getApplications,
   getApplicationById,
+  updateApplication,
 } = require("../controllers/application.controller");
 
 const {
@@ -15,5 +16,6 @@ const router = express.Router();
 router.post("/", authenticate, createApplication);
 router.get("/", authenticate, getApplications);
 router.get("/:id", authenticate, getApplicationById);
+router.patch("/:id", authenticate, updateApplication);
 
 module.exports = router;
