@@ -418,6 +418,7 @@ function LoginPage() {
                 ¿Aún no tienes una cuenta?{" "}
                 <button
                   className="font-semibold text-blue-400 transition hover:text-blue-300"
+                  onClick={() => navigate("/register")}
                   type="button"
                 >
                   Crear una cuenta
