@@ -214,6 +214,63 @@ async function getApplicationById(request, response) {
   }
 }
 
+async function getApplicationStats(request, response) {
+  try {
+    const applicationsByStatus = await prisma.application.groupBy({
+      by: ["status"],
+      where: {
+        userId: request.user.id,
+      },
+      _count: {
+        _all: true,
+      },
+    });
+
+    const stats = {
+      total: 0,
+      saved: 0,
+      applied: 0,
+      interview: 0,
+      technicalTest: 0,
+      offer: 0,
+      rejected: 0,
+      withdrawn: 0,
+    };
+
+    const statusKeys = {
+      SAVED: "saved",
+      APPLIED: "applied",
+      INTERVIEW: "interview",
+      TECHNICAL_TEST: "technicalTest",
+      OFFER: "offer",
+      REJECTED: "rejected",
+      WITHDRAWN: "withdrawn",
+    };
+
+    for (const applicationStatus of applicationsByStatus) {
+      const statKey = statusKeys[applicationStatus.status];
+      const count = applicationStatus._count._all;
+
+      stats.total += count;
+      stats[statKey] = count;
+    }
+
+    return response.status(200).json({
+      status: "success",
+      data: {
+        stats,
+      },
+    });
+  } catch (error) {
+    console.error("Get application stats error:", error);
+
+    return response.status(500).json({
+      status: "error",
+      message: "Internal server error",
+    });
+  }
+}
+
 async function updateApplication(request, response) {
   try {
     const applicationId = Number(request.params.id);
@@ -409,6 +466,7 @@ module.exports = {
   createApplication,
   getApplications,
   getApplicationById,
+  getApplicationStats,
   updateApplication,
   deleteApplication,
 };
