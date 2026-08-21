@@ -277,6 +277,7 @@ function DashboardPage() {
 
           <button
             className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-400 transition hover:bg-white/5 hover:text-white"
+            onClick={() => navigate("/applications")}
             type="button"
           >
             <BriefcaseBusiness
