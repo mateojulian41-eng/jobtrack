@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import BrandLogo from "../components/BrandLogo";
+import NewApplicationModal from "../components/NewApplicationModal";
 import api from "../services/api";
 
 const initialStats = {
@@ -111,6 +112,8 @@ function DashboardPage() {
   const [applications, setApplications] = useState([]);
   const [search, setSearch] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isNewApplicationOpen, setIsNewApplicationOpen] =
+    useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -152,6 +155,22 @@ function DashboardPage() {
   function handleLogout() {
     clearSession();
     navigate("/");
+  }
+
+  async function handleApplicationCreated(application) {
+    setApplications((currentApplications) => [
+      application,
+      ...currentApplications,
+    ]);
+
+    try {
+      const statsResponse = await api.get("/applications/stats");
+      setStats(statsResponse.data.data.stats);
+    } catch {
+      setErrorMessage(
+        "La postulación fue creada, pero las estadísticas no pudieron actualizarse.",
+      );
+    }
   }
 
   const firstName = user?.name?.split(" ")[0] || "usuario";
@@ -329,6 +348,7 @@ function DashboardPage() {
 
               <button
                 className="flex h-11 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-bold shadow-lg shadow-blue-600/20 transition hover:bg-blue-500"
+                onClick={() => setIsNewApplicationOpen(true)}
                 type="button"
               >
                 <Plus aria-hidden="true" className="size-4" />
@@ -363,6 +383,7 @@ function DashboardPage() {
                   aria-hidden="true"
                   className="size-4"
                 />
+
                 Datos actualizados en tiempo real
               </div>
             </section>
@@ -506,6 +527,12 @@ function DashboardPage() {
           </div>
         </main>
       </div>
+
+      <NewApplicationModal
+        isOpen={isNewApplicationOpen}
+        onApplicationCreated={handleApplicationCreated}
+        onClose={() => setIsNewApplicationOpen(false)}
+      />
     </div>
   );
 }
